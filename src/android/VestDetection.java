@@ -35,12 +35,13 @@ public class VestDetection extends CordovaPlugin {
     @Override
     public void pluginInitialize() {
         super.pluginInitialize();
+        android.util.Log.d("VestDetection", "===== PLUGIN INITIALIZE CALLED =====");
         try {
             android.util.Log.d("VestDetection", "Initializing plugin");
             tfliteHelper = new TensorFlowLiteHelper(cordova.getActivity());
             tfliteHelper.loadModel();
             android.util.Log.d("VestDetection", "Model loaded successfully");
-        } catch (IOException e) {
+        } catch (Exception e) {
             android.util.Log.e("VestDetection", "Error initializing: " + e.getMessage());
             e.printStackTrace();
         }
