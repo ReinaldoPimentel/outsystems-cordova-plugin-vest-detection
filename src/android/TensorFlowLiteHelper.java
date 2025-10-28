@@ -7,13 +7,11 @@ import android.graphics.Bitmap;
 import org.tensorflow.lite.Interpreter;
 
 import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.channels.FileChannel.MapMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,16 +58,25 @@ public class TensorFlowLiteHelper {
     private MappedByteBuffer loadModelFile() throws IOException {
         android.util.Log.d("TensorFlowLiteHelper", "Trying to load model from: " + MODEL_PATH);
         AssetManager assetManager = context.getAssets();
+        InputStream inputStream = null;
         try {
-            FileInputStream inputStream = (FileInputStream) assetManager.open(MODEL_PATH);
-            FileChannel fileChannel = inputStream.getChannel();
-            long startOffset = 0;
-            long declaredLength = fileChannel.size();
-            android.util.Log.d("TensorFlowLiteHelper", "Model file size: " + declaredLength);
-            return fileChannel.map(MapMode.READ_ONLY, startOffset, declaredLength);
-        } catch (FileNotFoundException e) {
-            android.util.Log.e("TensorFlowLiteHelper", "Model file not found: " + MODEL_PATH);
-            throw e;
+            inputStream = assetManager.open(MODEL_PATH);
+            int length = inputStream.available();
+            android.util.Log.d("TensorFlowLiteHelper", "Model file size: " + length);
+            
+            byte[] buffer = new byte[length];
+            inputStream.read(buffer);
+            inputStream.close();
+            
+            return ByteBuffer.wrap(buffer).asReadOnlyBuffer();
+        } catch (Exception e) {
+            if (inputStream != null) {
+                try {
+                    inputStream.close();
+                } catch (IOException ignored) {}
+            }
+            android.util.Log.e("TensorFlowLiteHelper", "Error loading model: " + e.getMessage());
+            throw new IOException("Failed to load model", e);
         }
     }
 
