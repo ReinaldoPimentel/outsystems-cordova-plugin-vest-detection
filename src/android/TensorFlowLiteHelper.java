@@ -7,10 +7,12 @@ import android.graphics.Bitmap;
 import org.tensorflow.lite.Interpreter;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.MappedByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +42,7 @@ public class TensorFlowLiteHelper {
         }
         android.util.Log.d("TensorFlowLiteHelper", "Model buffer loaded, creating Interpreter...");
         try {
-            tflite = new Interpreter(modelBuffer);
+            tflite = new Interpreter(modelBuffer, new Interpreter.Options());
             if (tflite == null) {
                 android.util.Log.e("TensorFlowLiteHelper", "Interpreter is null after creation!");
             } else {
@@ -58,25 +60,37 @@ public class TensorFlowLiteHelper {
     private MappedByteBuffer loadModelFile() throws IOException {
         android.util.Log.d("TensorFlowLiteHelper", "Trying to load model from: " + MODEL_PATH);
         AssetManager assetManager = context.getAssets();
-        InputStream inputStream = null;
+        InputStream inputStream = assetManager.open(MODEL_PATH);
         try {
-            inputStream = assetManager.open(MODEL_PATH);
             int length = inputStream.available();
             android.util.Log.d("TensorFlowLiteHelper", "Model file size: " + length);
             
             byte[] buffer = new byte[length];
-            inputStream.read(buffer);
-            inputStream.close();
-            
-            return ByteBuffer.wrap(buffer).asReadOnlyBuffer();
-        } catch (Exception e) {
-            if (inputStream != null) {
-                try {
-                    inputStream.close();
-                } catch (IOException ignored) {}
+            int totalBytesRead = 0;
+            while (totalBytesRead < length) {
+                int bytesRead = inputStream.read(buffer, totalBytesRead, length - totalBytesRead);
+                if (bytesRead == -1) {
+                    break;
+                }
+                totalBytesRead += bytesRead;
             }
-            android.util.Log.e("TensorFlowLiteHelper", "Error loading model: " + e.getMessage());
-            throw new IOException("Failed to load model", e);
+            
+            android.util.Log.d("TensorFlowLiteHelper", "Read " + totalBytesRead + " bytes");
+            
+            // Need to create a file and memory-map it
+            java.io.File cacheFile = new java.io.File(context.getCacheDir(), "model_temp.tflite");
+            java.io.FileOutputStream fos = new java.io.FileOutputStream(cacheFile);
+            fos.write(buffer);
+            fos.close();
+            
+            java.io.FileInputStream fis = new java.io.FileInputStream(cacheFile);
+            java.nio.channels.FileChannel fileChannel = fis.getChannel();
+            MappedByteBuffer mappedBuffer = fileChannel.map(java.nio.channels.FileChannel.MapMode.READ_ONLY, 0, cacheFile.length());
+            
+            fis.close();
+            return mappedBuffer;
+        } finally {
+            inputStream.close();
         }
     }
 
