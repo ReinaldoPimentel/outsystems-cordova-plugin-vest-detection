@@ -41,8 +41,18 @@ public class TensorFlowLiteHelper {
             return;
         }
         android.util.Log.d("TensorFlowLiteHelper", "Model buffer loaded, creating Interpreter...");
-        tflite = new Interpreter(modelBuffer);
-        android.util.Log.d("TensorFlowLiteHelper", "Interpreter created successfully");
+        try {
+            tflite = new Interpreter(modelBuffer);
+            if (tflite == null) {
+                android.util.Log.e("TensorFlowLiteHelper", "Interpreter is null after creation!");
+            } else {
+                android.util.Log.d("TensorFlowLiteHelper", "Interpreter created successfully");
+            }
+        } catch (Exception e) {
+            android.util.Log.e("TensorFlowLiteHelper", "Error creating Interpreter: " + e.getMessage());
+            e.printStackTrace();
+            throw new IOException("Failed to create Interpreter", e);
+        }
         loadLabels();
         android.util.Log.d("TensorFlowLiteHelper", "Labels loaded");
     }
@@ -78,10 +88,14 @@ public class TensorFlowLiteHelper {
     }
 
     public float[][] classifyImage(Bitmap bitmap) {
+        android.util.Log.d("TensorFlowLiteHelper", "classifyImage called");
         if (tflite == null) {
             android.util.Log.e("TensorFlowLiteHelper", "Interpreter is null! Model not loaded.");
+            android.util.Log.e("TensorFlowLiteHelper", "Context: " + context);
+            android.util.Log.e("TensorFlowLiteHelper", "Labels count: " + labels.size());
             return null;
         }
+        android.util.Log.d("TensorFlowLiteHelper", "Interpreter exists, processing image...");
         Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, INPUT_SIZE, INPUT_SIZE, true);
         
         int[] intValues = new int[INPUT_SIZE * INPUT_SIZE];
