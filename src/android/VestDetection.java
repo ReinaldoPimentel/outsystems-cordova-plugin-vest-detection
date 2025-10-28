@@ -21,11 +21,14 @@ public class VestDetection extends CordovaPlugin {
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
+        android.util.Log.d("VestDetection", "execute called with action: " + action);
         if (ACTION_DETECT_VEST.equals(action)) {
             String base64Image = args.getString(0);
+            android.util.Log.d("VestDetection", "Calling detectVest with image length: " + (base64Image != null ? base64Image.length() : 0));
             this.detectVest(base64Image, callbackContext);
             return true;
         }
+        android.util.Log.w("VestDetection", "Unknown action: " + action);
         return false;
     }
 
@@ -33,9 +36,12 @@ public class VestDetection extends CordovaPlugin {
     public void pluginInitialize() {
         super.pluginInitialize();
         try {
+            android.util.Log.d("VestDetection", "Initializing plugin");
             tfliteHelper = new TensorFlowLiteHelper(cordova.getActivity());
             tfliteHelper.loadModel();
+            android.util.Log.d("VestDetection", "Model loaded successfully");
         } catch (IOException e) {
+            android.util.Log.e("VestDetection", "Error initializing: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -53,11 +59,14 @@ public class VestDetection extends CordovaPlugin {
             @Override
             public void run() {
                 try {
+                    android.util.Log.d("VestDetection", "Starting detection with: " + base64Image);
                     Bitmap bitmap = decodeBase64Image(base64Image);
                     if (bitmap == null) {
+                        android.util.Log.e("VestDetection", "Failed to decode base64 image");
                         callbackContext.error("Failed to decode base64 image");
                         return;
                     }
+                    android.util.Log.d("VestDetection", "Image decoded successfully");
 
                     float[][] results = tfliteHelper.classifyImage(bitmap);
                     
