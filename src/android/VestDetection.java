@@ -69,7 +69,18 @@ public class VestDetection extends CordovaPlugin {
                     }
                     android.util.Log.d("VestDetection", "Image decoded successfully");
 
+                    if (tfliteHelper == null) {
+                        android.util.Log.e("VestDetection", "tfliteHelper is null!");
+                        callbackContext.error("Model not initialized");
+                        return;
+                    }
+                    
                     float[][] results = tfliteHelper.classifyImage(bitmap);
+                    if (results == null) {
+                        android.util.Log.e("VestDetection", "Classification returned null");
+                        callbackContext.error("Classification failed");
+                        return;
+                    }
                     
                     JSONObject result = new JSONObject();
                     JSONArray resultsArray = new JSONArray();

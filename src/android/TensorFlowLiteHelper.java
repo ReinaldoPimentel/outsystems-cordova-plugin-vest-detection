@@ -8,6 +8,7 @@ import org.tensorflow.lite.Interpreter;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.MappedByteBuffer;
@@ -33,18 +34,33 @@ public class TensorFlowLiteHelper {
     }
 
     public void loadModel() throws IOException {
+        android.util.Log.d("TensorFlowLiteHelper", "Loading model...");
         MappedByteBuffer modelBuffer = loadModelFile();
+        if (modelBuffer == null) {
+            android.util.Log.e("TensorFlowLiteHelper", "Model buffer is null!");
+            return;
+        }
+        android.util.Log.d("TensorFlowLiteHelper", "Model buffer loaded, creating Interpreter...");
         tflite = new Interpreter(modelBuffer);
+        android.util.Log.d("TensorFlowLiteHelper", "Interpreter created successfully");
         loadLabels();
+        android.util.Log.d("TensorFlowLiteHelper", "Labels loaded");
     }
 
     private MappedByteBuffer loadModelFile() throws IOException {
+        android.util.Log.d("TensorFlowLiteHelper", "Trying to load model from: " + MODEL_PATH);
         AssetManager assetManager = context.getAssets();
-        FileInputStream inputStream = (FileInputStream) assetManager.open(MODEL_PATH);
-        FileChannel fileChannel = inputStream.getChannel();
-        long startOffset = 0;
-        long declaredLength = fileChannel.size();
-        return fileChannel.map(MapMode.READ_ONLY, startOffset, declaredLength);
+        try {
+            FileInputStream inputStream = (FileInputStream) assetManager.open(MODEL_PATH);
+            FileChannel fileChannel = inputStream.getChannel();
+            long startOffset = 0;
+            long declaredLength = fileChannel.size();
+            android.util.Log.d("TensorFlowLiteHelper", "Model file size: " + declaredLength);
+            return fileChannel.map(MapMode.READ_ONLY, startOffset, declaredLength);
+        } catch (FileNotFoundException e) {
+            android.util.Log.e("TensorFlowLiteHelper", "Model file not found: " + MODEL_PATH);
+            throw e;
+        }
     }
 
     private void loadLabels() throws IOException {
@@ -62,6 +78,10 @@ public class TensorFlowLiteHelper {
     }
 
     public float[][] classifyImage(Bitmap bitmap) {
+        if (tflite == null) {
+            android.util.Log.e("TensorFlowLiteHelper", "Interpreter is null! Model not loaded.");
+            return null;
+        }
         Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, INPUT_SIZE, INPUT_SIZE, true);
         
         int[] intValues = new int[INPUT_SIZE * INPUT_SIZE];
