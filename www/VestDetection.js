@@ -1,6 +1,6 @@
 var exec = require('cordova/exec');
 
-var VestDetection = {
+module.exports = {
     /**
      * Detect a vest in an image
      * @param {string} base64Image - Base64 encoded image string (with or without data URI prefix)
@@ -9,7 +9,9 @@ var VestDetection = {
      */
     detectVest: function(base64Image, successCallback, errorCallback) {
         if (typeof base64Image !== 'string' || !base64Image) {
-            errorCallback('Invalid base64 image provided');
+            if (errorCallback) {
+                errorCallback('Invalid base64 image provided');
+            }
             return;
         }
 
@@ -22,6 +24,3 @@ var VestDetection = {
         );
     }
 };
-
-module.exports = VestDetection;
-
