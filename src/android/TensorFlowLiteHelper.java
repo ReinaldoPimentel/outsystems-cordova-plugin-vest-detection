@@ -134,8 +134,16 @@ public class TensorFlowLiteHelper {
             }
         }
         
-        float[][] results = new float[1][labels.size()];
-        tflite.run(byteBuffer, results);
+        // Output shape is [1, 1] (sigmoid output)
+        float[][] output = new float[1][1];
+        tflite.run(byteBuffer, output);
+        android.util.Log.d("TensorFlowLiteHelper", "Inference result: " + output[0][0]);
+        
+        // Convert to [1, 2] format for compatibility
+        float[][] results = new float[1][2];
+        float vestScore = output[0][0];
+        results[0][0] = 1.0f - vestScore; // no_vest probability
+        results[0][1] = vestScore; // vest probability
         
         return results;
     }
