@@ -10,13 +10,13 @@ Pod::Spec.new do |s|
         running locally on mobile devices without requiring an internet connection.
     DESC
     
-    s.homepage     = "https://github.com/yourusername/outsystems-cordova-plugin-vest-detection"
+    s.homepage     = "https://github.com/ReinaldoPimentel/outsystems-cordova-plugin-vest-detection"
     s.license      = "MIT"
     s.author       = { "Your Name" => "your.email@example.com" }
     
     s.platform     = :ios, "12.0"
     
-    s.source       = { :git => "https://github.com/yourusername/outsystems-cordova-plugin-vest-detection.git", :tag => s.version }
+    s.source       = { :git => "https://github.com/ReinaldoPimentel/outsystems-cordova-plugin-vest-detection.git", :tag => s.version }
     
     s.source_files = "src/ios/*.{h,m}"
     

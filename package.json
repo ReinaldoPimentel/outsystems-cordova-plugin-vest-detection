@@ -21,11 +21,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/outsystems-cordova-plugin-vest-detection"
+    "url": "https://github.com/ReinaldoPimentel/outsystems-cordova-plugin-vest-detection"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/outsystems-cordova-plugin-vest-detection/issues"
+    "url": "https://github.com/ReinaldoPimentel/outsystems-cordova-plugin-vest-detection/issues"
   },
-  "homepage": "https://github.com/yourusername/outsystems-cordova-plugin-vest-detection#readme"
+  "homepage": "https://github.com/ReinaldoPimentel/outsystems-cordova-plugin-vest-detection#readme"
 }
 
