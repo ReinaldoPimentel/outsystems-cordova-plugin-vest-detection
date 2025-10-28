@@ -1,0 +1,31 @@
+{
+  "name": "cordova-plugin-vest-detection",
+  "version": "1.0.0",
+  "description": "Cordova plugin for detecting safety vests using TensorFlow Lite",
+  "cordova": {
+    "id": "com.outsystems.cordova.plugins.vestdetection",
+    "platforms": [
+      "android",
+      "ios"
+    ]
+  },
+  "keywords": [
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova-ios",
+    "tensorflow",
+    "machine-learning",
+    "vest-detection"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/outsystems-cordova-plugin-vest-detection"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/outsystems-cordova-plugin-vest-detection/issues"
+  },
+  "homepage": "https://github.com/yourusername/outsystems-cordova-plugin-vest-detection#readme"
+}
+

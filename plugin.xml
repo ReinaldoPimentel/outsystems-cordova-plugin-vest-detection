@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+    id="com.outsystems.cordova.plugins.vestdetection"
+    version="1.0.0">
+    
+    <name>VestDetection</name>
+    
+    <description>
+        Cordova plugin for detecting safety vests using TensorFlow Lite
+    </description>
+    
+    <license>MIT</license>
+    
+    <author>Your Name</author>
+    
+    <keywords>
+        cordova,tensorflow,lite,machine learning,vest,detection
+    </keywords>
+    
+    <js-module src="www/VestDetection.js" name="VestDetection">
+        <clobbers target="cordova.plugins.VestDetection" />
+    </js-module>
+    
+    <!-- Android platform -->
+    <platform name="android">
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="VestDetection">
+                <param name="android-package" value="com.outsystems.cordova.plugins.vestdetection.VestDetection"/>
+            </feature>
+        </config-file>
+        
+        <config-file target="AndroidManifest.xml" parent="/manifest">
+            <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+            <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+        </config-file>
+        
+        <source-file src="src/android/VestDetection.java" target-dir="src/com/outsystems/cordova/plugins/vestdetection" />
+        <source-file src="src/android/TensorFlowLiteHelper.java" target-dir="src/com/outsystems/cordova/plugins/vestdetection" />
+        <source-file src="src/android/build.gradle" target-dir DB="main"/>
+        
+        <resource-file src="src/models/vest_model.tflite" target="assets/vest_model.tflite" />
+        <resource-file src="src/models/labels.txt" target="assets/labels.txt" />
+    </platform>
+    
+    <!-- iOS platform -->
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="VestDetection">
+                <param name="ios-package" value="VestDetection"/>
+            </feature>
+        </config-file>
+        
+        <header-file src="src/ios/VestDetection.h" />
+        <source-file src="src/ios/VestDetection.m" />
+        <header-file src="src/ios/TensorFlowLiteHelper.h" />
+        <source-file src="src/ios/TensorFlowLiteHelper.m" />
+        
+        <resource-file src="src/models/vest_model.tflite" />
+        <resource-file src="src/models/labels.txt" />
+        
+        <framework src="podspec" />
+    </platform>
+    
+</plugin>
+
