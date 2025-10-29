@@ -128,9 +128,9 @@ public class TensorFlowLiteHelper {
         for (int i = 0; i < INPUT_SIZE; i++) {
             for (int j = 0; j < INPUT_SIZE; j++) {
                 int pixel = intValues[i * INPUT_SIZE + j];
-                byteBuffer[0][i][j][0] = ((pixel >> 16) & 0xFF - IMAGE_MEAN) / IMAGE_STD;
-                byteBuffer[0][i][j][1] = ((pixel >> 8) & 0xFF - IMAGE_MEAN) / IMAGE_STD;
-                byteBuffer[0][i][j][2] = ((pixel) & 0xFF - IMAGE_MEAN) / IMAGE_STD;
+                byteBuffer[0][i][j][0] = (((pixel >> 16) & 0xFF) - IMAGE_MEAN) / IMAGE_STD;
+                byteBuffer[0][i][j][1] = (((pixel >> 8) & 0xFF) - IMAGE_MEAN) / IMAGE_STD;
+                byteBuffer[0][i][j][2] = (((pixel) & 0xFF) - IMAGE_MEAN) / IMAGE_STD;
             }
         }
         
