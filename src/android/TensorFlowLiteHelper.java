@@ -58,7 +58,7 @@ public class TensorFlowLiteHelper {
     }
 
     private MappedByteBuffer loadModelFile() throws IOException {
-        android.util.Log.d("TensorFlowLiteHelper", "===== loadModelFile V2 called =====");
+        android.util.Log.d("TensorFlowLiteHelper", "Trying to load model from: " + MODEL_PATH);
         AssetManager assetManager = context.getAssets();
         InputStream inputStream = assetManager.open(MODEL_PATH);
         try {

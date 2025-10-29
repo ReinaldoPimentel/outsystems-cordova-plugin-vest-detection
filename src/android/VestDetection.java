@@ -82,12 +82,16 @@ public class VestDetection extends CordovaPlugin {
                         return;
                     }
                     
+                    android.util.Log.d("VestDetection", "Raw results: [" + results[0][0] + ", " + results[0][1] + "]");
+                    
                     JSONObject result = new JSONObject();
                     JSONArray resultsArray = new JSONArray();
                     
                     int vestIndex = 1;
                     float vestConfidence = results[0][vestIndex];
+                    android.util.Log.d("VestDetection", "Vest confidence: " + vestConfidence);
                     boolean detected = vestConfidence > 0.5f;
+                    android.util.Log.d("VestDetection", "Detected: " + detected);
                     
                     for (int i = 0; i < results[0].length; i++) {
                         JSONObject classResult = new JSONObject();
