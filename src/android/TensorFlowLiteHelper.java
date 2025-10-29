@@ -21,8 +21,8 @@ public class TensorFlowLiteHelper {
     private static final String MODEL_PATH = "vest_model.tflite";
     private static final String LABEL_PATH = "labels.txt";
     private static final int INPUT_SIZE = 224;
-    private static final int IMAGE_MEAN = 128;
-    private static final float IMAGE_STD = 128.0f;
+    private static final float IMAGE_MEAN = 127.5f;
+    private static final float IMAGE_STD = 127.5f;
 
     private Interpreter tflite;
     private List<String> labels;
