@@ -52,16 +52,33 @@ public class TensorFlowLiteHelper {
             android.util.Log.d("TensorFlowLiteHelper", "Model buffer loaded, creating Interpreter...");
         }
         try {
+            // Verify buffer is valid
+            if (modelBuffer == null) {
+                android.util.Log.e("TensorFlowLiteHelper", "Model buffer is null!");
+                throw new IOException("Model buffer is null");
+            }
+            
+            if (debugMode) {
+                android.util.Log.d("TensorFlowLiteHelper", "Model buffer size: " + modelBuffer.capacity() + " bytes");
+                android.util.Log.d("TensorFlowLiteHelper", "Creating Interpreter with buffer position: " + modelBuffer.position() + ", limit: " + modelBuffer.limit());
+            }
+            
+            // Reset buffer position to beginning
+            modelBuffer.rewind();
+            
             tflite = new Interpreter(modelBuffer, new Interpreter.Options());
             if (tflite == null) {
                 android.util.Log.e("TensorFlowLiteHelper", "Interpreter is null after creation!");
             } else if (debugMode) {
                 android.util.Log.d("TensorFlowLiteHelper", "Interpreter created successfully");
             }
+        } catch (IllegalArgumentException e) {
+            android.util.Log.e("TensorFlowLiteHelper", "IllegalArgumentException creating Interpreter: " + e.getMessage(), e);
+            throw new IOException("Failed to create Interpreter - invalid model: " + e.getMessage(), e);
         } catch (Exception e) {
-            android.util.Log.e("TensorFlowLiteHelper", "Error creating Interpreter: " + e.getMessage());
+            android.util.Log.e("TensorFlowLiteHelper", "Error creating Interpreter: " + e.getClass().getSimpleName() + ": " + e.getMessage(), e);
             e.printStackTrace();
-            throw new IOException("Failed to create Interpreter", e);
+            throw new IOException("Failed to create Interpreter: " + e.getMessage(), e);
         }
         loadLabels();
         if (debugMode) {
@@ -101,9 +118,19 @@ public class TensorFlowLiteHelper {
             // Need to create a file and memory-map it
             tempModelFile = new java.io.File(context.getCacheDir(), "model_temp.tflite");
             java.io.FileOutputStream fos = new java.io.FileOutputStream(tempModelFile);
-            fos.write(buffer, 0, totalBytesRead); // Only write the bytes we actually read
-            fos.flush();
-            fos.close();
+            try {
+                fos.write(buffer, 0, totalBytesRead); // Only write the bytes we actually read
+                fos.flush();
+                fos.getFD().sync(); // Ensure data is written to disk
+            } finally {
+                fos.close();
+            }
+            
+            // Verify file was written correctly
+            if (!tempModelFile.exists() || tempModelFile.length() != totalBytesRead) {
+                android.util.Log.e("TensorFlowLiteHelper", "File write verification failed! Expected: " + totalBytesRead + ", Actual: " + (tempModelFile.exists() ? tempModelFile.length() : 0));
+                throw new IOException("Failed to write model file correctly");
+            }
             
             modelFileInputStream = new java.io.FileInputStream(tempModelFile);
             java.nio.channels.FileChannel fileChannel = modelFileInputStream.getChannel();
