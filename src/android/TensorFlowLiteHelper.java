@@ -27,6 +27,8 @@ public class TensorFlowLiteHelper {
     private Interpreter tflite;
     private List<String> labels;
     private Context context;
+    private java.io.FileInputStream modelFileInputStream; // Keep reference to keep mapped buffer valid
+    private java.io.File tempModelFile; // Keep reference to delete on close
 
     public TensorFlowLiteHelper(Context context) {
         this.context = context;
@@ -97,16 +99,18 @@ public class TensorFlowLiteHelper {
             }
             
             // Need to create a file and memory-map it
-            java.io.File cacheFile = new java.io.File(context.getCacheDir(), "model_temp.tflite");
-            java.io.FileOutputStream fos = new java.io.FileOutputStream(cacheFile);
-            fos.write(buffer);
+            tempModelFile = new java.io.File(context.getCacheDir(), "model_temp.tflite");
+            java.io.FileOutputStream fos = new java.io.FileOutputStream(tempModelFile);
+            fos.write(buffer, 0, totalBytesRead); // Only write the bytes we actually read
+            fos.flush();
             fos.close();
             
-            java.io.FileInputStream fis = new java.io.FileInputStream(cacheFile);
-            java.nio.channels.FileChannel fileChannel = fis.getChannel();
-            MappedByteBuffer mappedBuffer = fileChannel.map(java.nio.channels.FileChannel.MapMode.READ_ONLY, 0, cacheFile.length());
+            modelFileInputStream = new java.io.FileInputStream(tempModelFile);
+            java.nio.channels.FileChannel fileChannel = modelFileInputStream.getChannel();
+            MappedByteBuffer mappedBuffer = fileChannel.map(java.nio.channels.FileChannel.MapMode.READ_ONLY, 0, totalBytesRead);
             
-            fis.close();
+            // Don't close FileInputStream here - the mapped buffer needs the channel to remain open
+            // We'll close it in the close() method
             return mappedBuffer;
         } finally {
             inputStream.close();
@@ -192,6 +196,20 @@ public class TensorFlowLiteHelper {
         if (tflite != null) {
             tflite.close();
             tflite = null;
+        }
+        // Close the FileInputStream to release the mapped buffer
+        if (modelFileInputStream != null) {
+            try {
+                modelFileInputStream.close();
+                modelFileInputStream = null;
+            } catch (IOException e) {
+                // Ignore
+            }
+        }
+        // Delete the temporary file
+        if (tempModelFile != null && tempModelFile.exists()) {
+            tempModelFile.delete();
+            tempModelFile = null;
         }
     }
 }
