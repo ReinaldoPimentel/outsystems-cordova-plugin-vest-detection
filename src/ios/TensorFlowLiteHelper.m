@@ -56,6 +56,10 @@
 }
 
 - (NSArray*)classifyImage:(UIImage*)image {
+    return [self classifyImage:image debugMode:NO];
+}
+
+- (NSArray*)classifyImage:(UIImage*)image debugMode:(BOOL)debugMode {
     if (!interpreter) {
         return @[@0.0, @0.0];
     }
@@ -79,8 +83,8 @@
     CGContextDrawImage(context, CGRectMake(0, 0, INPUT_SIZE, INPUT_SIZE), cgImage);
     CGContextRelease(context);
     
-    const int IMAGE_MEAN = 128;
-    const float IMAGE_STD = 128.0f;
+    const float IMAGE_MEAN = 127.5f;
+    const float IMAGE_STD = 127.5f;
     
     for (int i = 0; i < INPUT_SIZE * INPUT_SIZE; i++) {
         bytes[i * 3 + 0] = (rawData[i * 4 + 0] - IMAGE_MEAN) / IMAGE_STD;
@@ -102,10 +106,39 @@
     NSData* outputData = [outputTensor dataWithError:nil];
     
     float* outputBytes = (float*)[outputData bytes];
+    
+    // Get output tensor shape to determine if it's sigmoid (single value) or multi-class
+    NSError* shapeError;
+    NSArray* outputShape = [outputTensor shapeWithError:&shapeError];
+    
+    // Handle sigmoid output (single value): convert to [no_vest, vest] format
+    // Output shape is [1, 1] for sigmoid output
+    NSInteger totalElements = 1;
+    for (NSNumber* dim in outputShape) {
+        totalElements *= [dim integerValue];
+    }
+    
     NSMutableArray* results = [NSMutableArray array];
     
-    for (int i = 0; i < labels.count; i++) {
-        [results addObject:@(outputBytes[i])];
+    if (totalElements == 1) {
+        // Sigmoid output: single value where 1.0 = vest detected, 0.0 = no vest
+        float rawModelOutput = outputBytes[0];
+        if (debugMode) {
+            NSLog(@"TensorFlowLiteHelper: Raw model output (sigmoid): %f", rawModelOutput);
+        }
+        
+        // Convert to [no_vest, vest] format for compatibility
+        float noVestProbability = 1.0f - rawModelOutput;
+        float vestProbability = rawModelOutput;
+        
+        [results addObject:@(noVestProbability)];
+        [results addObject:@(vestProbability)];
+    } else {
+        // Multi-class output: assume it matches label count
+        NSInteger count = MIN((NSInteger)labels.count, totalElements);
+        for (int i = 0; i < count; i++) {
+            [results addObject:@(outputBytes[i])];
+        }
     }
     
     return results;

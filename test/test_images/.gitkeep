@@ -1,0 +1,9 @@
+# Add your test images here
+# Supported formats: JPG, JPEG, PNG, BMP, WEBP
+# 
+# Example:
+# test_images/
+#   ├── vest_example.jpg
+#   ├── no_vest_example.jpg
+#   └── edge_cases/
+

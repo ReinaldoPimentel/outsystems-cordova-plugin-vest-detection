@@ -18,31 +18,68 @@ public class VestDetection extends CordovaPlugin {
 
     private static final String ACTION_DETECT_VEST = "detectVest";
     private TensorFlowLiteHelper tfliteHelper;
+    
+    // Helper methods for conditional logging
+    private void logE(String tag, String msg) {
+        // Always log errors even in production
+        android.util.Log.e(tag, msg);
+    }
+    
+    private void logW(String tag, String msg) {
+        // Always log warnings even in production
+        android.util.Log.w(tag, msg);
+    }
+    
+    private void logD(String tag, String msg, boolean debugMode) {
+        if (debugMode) {
+            android.util.Log.d(tag, msg);
+        }
+    }
 
     @Override
     public boolean execute(String action, JSONArray args, CallbackContext callbackContext) throws JSONException {
-        android.util.Log.d("VestDetection", "execute called with action: " + action);
         if (ACTION_DETECT_VEST.equals(action)) {
             String base64Image = args.getString(0);
-            android.util.Log.d("VestDetection", "Calling detectVest with image length: " + (base64Image != null ? base64Image.length() : 0));
-            this.detectVest(base64Image, callbackContext);
+            // Get threshold if provided, default to 0.75 (75%)
+            double threshold = 0.75;
+            if (args.length() > 1 && !args.isNull(1)) {
+                try {
+                    threshold = args.getDouble(1);
+                    // Validate threshold range
+                    if (threshold < 0.0 || threshold > 1.0) {
+                        logW("VestDetection", "Invalid threshold " + threshold + ", using default 0.75");
+                        threshold = 0.75;
+                    }
+                } catch (JSONException e) {
+                    logW("VestDetection", "Failed to parse threshold, using default 0.75");
+                    threshold = 0.75;
+                }
+            }
+            // Get debug mode if provided, default to false
+            boolean debugMode = false;
+            if (args.length() > 2 && !args.isNull(2)) {
+                try {
+                    debugMode = args.getBoolean(2);
+                } catch (JSONException e) {
+                    debugMode = false;
+                }
+            }
+            logD("VestDetection", "Calling detectVest with image length: " + (base64Image != null ? base64Image.length() : 0) + ", threshold: " + threshold, debugMode);
+            this.detectVest(base64Image, (float)threshold, debugMode, callbackContext);
             return true;
         }
-        android.util.Log.w("VestDetection", "Unknown action: " + action);
+        logW("VestDetection", "Unknown action: " + action);
         return false;
     }
 
     @Override
     public void pluginInitialize() {
         super.pluginInitialize();
-        android.util.Log.d("VestDetection", "===== PLUGIN INITIALIZE CALLED =====");
         try {
-            android.util.Log.d("VestDetection", "Initializing plugin");
             tfliteHelper = new TensorFlowLiteHelper(cordova.getActivity());
-            tfliteHelper.loadModel();
-            android.util.Log.d("VestDetection", "Model loaded successfully");
+            tfliteHelper.loadModel(false); // Disable debug logging during initialization
         } catch (Exception e) {
-            android.util.Log.e("VestDetection", "Error initializing: " + e.getMessage());
+            logE("VestDetection", "Error initializing: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -55,43 +92,44 @@ public class VestDetection extends CordovaPlugin {
         super.onDestroy();
     }
 
-    private void detectVest(String base64Image, final CallbackContext callbackContext) {
+    private void detectVest(String base64Image, final float threshold, final boolean debugMode, final CallbackContext callbackContext) {
         cordova.getThreadPool().execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    android.util.Log.d("VestDetection", "Starting detection with: " + base64Image);
+                    logD("VestDetection", "Starting detection", debugMode);
                     Bitmap bitmap = decodeBase64Image(base64Image);
                     if (bitmap == null) {
-                        android.util.Log.e("VestDetection", "Failed to decode base64 image");
+                        logE("VestDetection", "Failed to decode base64 image");
                         callbackContext.error("Failed to decode base64 image");
                         return;
                     }
-                    android.util.Log.d("VestDetection", "Image decoded successfully");
+                    logD("VestDetection", "Image decoded successfully", debugMode);
 
                     if (tfliteHelper == null) {
-                        android.util.Log.e("VestDetection", "tfliteHelper is null!");
+                        logE("VestDetection", "tfliteHelper is null!");
                         callbackContext.error("Model not initialized");
                         return;
                     }
                     
-                    float[][] results = tfliteHelper.classifyImage(bitmap);
+                    float[][] results = tfliteHelper.classifyImage(bitmap, debugMode);
                     if (results == null) {
-                        android.util.Log.e("VestDetection", "Classification returned null");
+                        logE("VestDetection", "Classification returned null");
                         callbackContext.error("Classification failed");
                         return;
                     }
                     
-                    android.util.Log.d("VestDetection", "Raw results: [" + results[0][0] + ", " + results[0][1] + "]");
+                    logD("VestDetection", "Raw results: [" + results[0][0] + ", " + results[0][1] + "]", debugMode);
                     
                     JSONObject result = new JSONObject();
                     JSONArray resultsArray = new JSONArray();
                     
                     int vestIndex = 1;
                     float vestConfidence = results[0][vestIndex];
-                    android.util.Log.d("VestDetection", "Vest confidence: " + vestConfidence);
-                    boolean detected = vestConfidence > 0.5f;
-                    android.util.Log.d("VestDetection", "Detected: " + detected);
+                    logD("VestDetection", "Vest confidence: " + vestConfidence + ", threshold: " + threshold, debugMode);
+                    // Use configurable confidence threshold for vest detection
+                    boolean detected = vestConfidence >= threshold;
+                    logD("VestDetection", "Detected: " + detected, debugMode);
                     
                     for (int i = 0; i < results[0].length; i++) {
                         JSONObject classResult = new JSONObject();
@@ -107,8 +145,11 @@ public class VestDetection extends CordovaPlugin {
                     callbackContext.success(result);
                     
                 } catch (Exception e) {
+                    logE("VestDetection", "Error during detection: " + e.getMessage());
                     callbackContext.error("Error during detection: " + e.getMessage());
-                    e.printStackTrace();
+                    if (debugMode) {
+                        e.printStackTrace();
+                    }
                 }
             }
         });

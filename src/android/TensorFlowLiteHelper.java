@@ -34,18 +34,26 @@ public class TensorFlowLiteHelper {
     }
 
     public void loadModel() throws IOException {
-        android.util.Log.d("TensorFlowLiteHelper", "Loading model...");
-        MappedByteBuffer modelBuffer = loadModelFile();
+        loadModel(false);
+    }
+    
+    public void loadModel(boolean debugMode) throws IOException {
+        if (debugMode) {
+            android.util.Log.d("TensorFlowLiteHelper", "Loading model...");
+        }
+        MappedByteBuffer modelBuffer = loadModelFile(debugMode);
         if (modelBuffer == null) {
             android.util.Log.e("TensorFlowLiteHelper", "Model buffer is null!");
             return;
         }
-        android.util.Log.d("TensorFlowLiteHelper", "Model buffer loaded, creating Interpreter...");
+        if (debugMode) {
+            android.util.Log.d("TensorFlowLiteHelper", "Model buffer loaded, creating Interpreter...");
+        }
         try {
             tflite = new Interpreter(modelBuffer, new Interpreter.Options());
             if (tflite == null) {
                 android.util.Log.e("TensorFlowLiteHelper", "Interpreter is null after creation!");
-            } else {
+            } else if (debugMode) {
                 android.util.Log.d("TensorFlowLiteHelper", "Interpreter created successfully");
             }
         } catch (Exception e) {
@@ -54,16 +62,26 @@ public class TensorFlowLiteHelper {
             throw new IOException("Failed to create Interpreter", e);
         }
         loadLabels();
-        android.util.Log.d("TensorFlowLiteHelper", "Labels loaded");
+        if (debugMode) {
+            android.util.Log.d("TensorFlowLiteHelper", "Labels loaded");
+        }
     }
 
     private MappedByteBuffer loadModelFile() throws IOException {
-        android.util.Log.d("TensorFlowLiteHelper", "Trying to load model from: " + MODEL_PATH);
+        return loadModelFile(false);
+    }
+    
+    private MappedByteBuffer loadModelFile(boolean debugMode) throws IOException {
+        if (debugMode) {
+            android.util.Log.d("TensorFlowLiteHelper", "Trying to load model from: " + MODEL_PATH);
+        }
         AssetManager assetManager = context.getAssets();
         InputStream inputStream = assetManager.open(MODEL_PATH);
         try {
             int length = inputStream.available();
-            android.util.Log.d("TensorFlowLiteHelper", "Model file size: " + length);
+            if (debugMode) {
+                android.util.Log.d("TensorFlowLiteHelper", "Model file size: " + length);
+            }
             
             byte[] buffer = new byte[length];
             int totalBytesRead = 0;
@@ -74,8 +92,9 @@ public class TensorFlowLiteHelper {
                 }
                 totalBytesRead += bytesRead;
             }
-            
-            android.util.Log.d("TensorFlowLiteHelper", "Read " + totalBytesRead + " bytes");
+            if (debugMode) {
+                android.util.Log.d("TensorFlowLiteHelper", "Read " + totalBytesRead + " bytes");
+            }
             
             // Need to create a file and memory-map it
             java.io.File cacheFile = new java.io.File(context.getCacheDir(), "model_temp.tflite");
@@ -109,14 +128,24 @@ public class TensorFlowLiteHelper {
     }
 
     public float[][] classifyImage(Bitmap bitmap) {
-        android.util.Log.d("TensorFlowLiteHelper", "classifyImage called");
+        return classifyImage(bitmap, false);
+    }
+    
+    public float[][] classifyImage(Bitmap bitmap, boolean debugMode) {
+        if (debugMode) {
+            android.util.Log.d("TensorFlowLiteHelper", "classifyImage called");
+        }
         if (tflite == null) {
             android.util.Log.e("TensorFlowLiteHelper", "Interpreter is null! Model not loaded.");
-            android.util.Log.e("TensorFlowLiteHelper", "Context: " + context);
-            android.util.Log.e("TensorFlowLiteHelper", "Labels count: " + labels.size());
+            if (debugMode) {
+                android.util.Log.e("TensorFlowLiteHelper", "Context: " + context);
+                android.util.Log.e("TensorFlowLiteHelper", "Labels count: " + labels.size());
+            }
             return null;
         }
-        android.util.Log.d("TensorFlowLiteHelper", "Interpreter exists, processing image...");
+        if (debugMode) {
+            android.util.Log.d("TensorFlowLiteHelper", "Interpreter exists, processing image...");
+        }
         Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, INPUT_SIZE, INPUT_SIZE, true);
         
         int[] intValues = new int[INPUT_SIZE * INPUT_SIZE];
@@ -140,7 +169,9 @@ public class TensorFlowLiteHelper {
         
         // The model outputs sigmoid: 1.0 = vest detected, 0.0 = no vest
         float rawModelOutput = output[0][0];
-        android.util.Log.d("TensorFlowLiteHelper", "Raw model output (sigmoid): " + rawModelOutput);
+        if (debugMode) {
+            android.util.Log.d("TensorFlowLiteHelper", "Raw model output (sigmoid): " + rawModelOutput);
+        }
         
         // Convert to [1, 2] format for compatibility
         float[][] results = new float[1][2];

@@ -1,0 +1,7 @@
+numpy>=1.21.0
+tensorflow>=2.10.0
+Pillow>=9.0.0
+# Training dependencies (if training new models)
+# scikit-learn>=1.0.0  # Optional: for additional metrics
+# matplotlib>=3.5.0    # Optional: for plotting training curves
+

@@ -21,7 +21,7 @@ cordova plugin add cordova-plugin-vest-detection
 ### From Git Repository
 
 ```bash
-cordova plugin add https://github.com/yourusername/outsystems-cordova-plugin-vest-detection
+cordova plugin add https://github.com/ReinaldoPimentel/outsystems-cordova-plugin-vest-detection
 ```
 
 ### From Local Directory
@@ -37,6 +37,7 @@ cordova plugin add /path/to/plugin
 ```javascript
 var base64Image = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAA...";
 
+// Using default threshold (0.75 = 75%)
 cordova.plugins.VestDetection.detectVest(
     base64Image,
     function(result) {
@@ -47,6 +48,41 @@ cordova.plugins.VestDetection.detectVest(
     function(error) {
         console.error("Error: " + error);
     }
+);
+```
+
+### With Custom Threshold
+
+```javascript
+// Using custom threshold (0.90 = 90%)
+cordova.plugins.VestDetection.detectVest(
+    base64Image,
+    function(result) {
+        console.log("Vest detected: " + result.detected);
+        console.log("Confidence: " + result.confidence);
+    },
+    function(error) {
+        console.error("Error: " + error);
+    },
+    0.90  // 90% confidence threshold
+);
+```
+
+### With Debug Mode Enabled
+
+```javascript
+// Enable debug logging (use sparingly to prevent log accumulation)
+cordova.plugins.VestDetection.detectVest(
+    base64Image,
+    function(result) {
+        console.log("Vest detected: " + result.detected);
+        console.log("Confidence: " + result.confidence);
+    },
+    function(error) {
+        console.error("Error: " + error);
+    },
+    0.75,  // threshold (optional, defaults to 0.75)
+    true   // isDebugMode (optional, defaults to false)
 );
 ```
 
@@ -71,8 +107,8 @@ The success callback receives a JSON object with the following structure:
 }
 ```
 
-- `detected`: Boolean indicating if vest confidence > 0.5
-- `confidence`: Confidence score of the vest class
+- `detected`: Boolean indicating if vest confidence >= threshold (default: 0.75 = 75%)
+- `confidence`: Confidence score of the vest class (0.0 to 1.0)
 - `results`: Array of all class predictions with labels and confidence scores
 
 ## Permissions
@@ -110,7 +146,7 @@ The plugin includes a pre-trained TensorFlow Lite model for vest detection:
 
 ## API
 
-### detectVest(base64Image, successCallback, errorCallback)
+### detectVest(base64Image, successCallback, errorCallback, threshold, isDebugMode)
 
 Detects a vest in the specified image.
 
@@ -124,10 +160,36 @@ Detects a vest in the specified image.
 
 - `errorCallback` (Function): Callback function with error message
 
+- `threshold` (Number, optional): Confidence threshold for vest detection (0.0 to 1.0)
+  - Default: `0.75` (75%)
+  - Only vest confidence scores >= threshold will be considered detected
+  - Example: `0.90` for 90% confidence threshold
+
+- `isDebugMode` (Boolean, optional): Enable debug logging
+  - Default: `false` (logs disabled to save memory)
+  - When `true`, enables detailed console/logcat logging for debugging
+  - **Important**: Disable in production to prevent log accumulation and memory issues
+
 **Returns:**
 
 - Success: Object with detection results (see Result Format above)
 - Error: Error message string
+
+**Example:**
+
+```javascript
+// Default threshold (75%), no debug logs
+cordova.plugins.VestDetection.detectVest(base64Image, onSuccess, onError);
+
+// Custom threshold (90%), no debug logs
+cordova.plugins.VestDetection.detectVest(base64Image, onSuccess, onError, 0.90);
+
+// Default threshold with debug logging enabled
+cordova.plugins.VestDetection.detectVest(base64Image, onSuccess, onError, 0.75, true);
+
+// Custom threshold with debug logging enabled
+cordova.plugins.VestDetection.detectVest(base64Image, onSuccess, onError, 0.90, true);
+```
 
 ## Building
 
@@ -159,6 +221,12 @@ The TensorFlow Lite dependency is managed via CocoaPods. The plugin will automat
 - Vest should be visible and not heavily occluded
 - Use images similar to the training data (224x224 recommended)
 
+### Memory issues
+
+- **Disable debug mode in production**: Set `isDebugMode` to `false` (default) to prevent log accumulation
+- Debug logs can fill up log buffers and device memory if enabled continuously
+- Only enable debug mode (`isDebugMode: true`) when actively debugging issues
+
 ## License
 
 MIT
@@ -167,11 +235,7 @@ MIT
 
 Contributions are welcome! Please open an issue or submit a pull request.
 
-## Author
-
-Your Name
-
 ## Support
 
-For issues and questions, please use the [GitHub issue tracker](https://github.com/yourusername/outsystems-cordova-plugin-vest-detection/issues).
+For issues and questions, please use the [GitHub issue tracker](https://github.com/ReinaldoPimentel/outsystems-cordova-plugin-vest-detection/issues).
 
