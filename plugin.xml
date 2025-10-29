@@ -31,7 +31,7 @@
         
         <source-file src="src/android/VestDetection.java" target-dir="src/com/outsystems/cordova/plugins/vestdetection" />
         <source-file src="src/android/TensorFlowLiteHelper.java" target-dir="src/com/outsystems/cordova/plugins/vestdetection" />
-        <framework src="org.tensorflow:tensorflow-lite:2.14.0" />
+        <framework src="org.tensorflow:tensorflow-lite:2.17.0" />
         
         <resource-file src="src/models/vest_model.tflite" target="assets/vest_model.tflite" />
         <resource-file src="src/models/labels.txt" target="assets/labels.txt" />
@@ -59,7 +59,7 @@
                 <source url="https://cdn.cocoapods.org/"></source>
             </config>
             <pods use-frameworks="true">
-                <pod name="TensorFlowLite" spec="2.14.0" />
+                <pod name="TensorFlowLite" spec="2.17.0" />
             </pods>
         </podspec>
     </platform>

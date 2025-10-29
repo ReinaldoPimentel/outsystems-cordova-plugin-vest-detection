@@ -121,7 +121,7 @@ No special permissions are required since the plugin accepts base64 encoded imag
 
 - Cordova 9.0+
 - Android SDK 21+
-- TensorFlow Lite 2.14.0
+- TensorFlow Lite 2.17.0
 
 ### iOS
 
