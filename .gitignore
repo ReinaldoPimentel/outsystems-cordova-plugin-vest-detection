@@ -1,4 +1,19 @@
 bin/
 *.class
 .vscode/settings.json
+.png
+.jpg
+.jpeg
+.JPG
+.JPEG
+.PNG
+.bmp
+.gif
+.tiff
+
+# Python virtual environments
+venv_gpu/
+venv/
+env/
+.venv/
 
