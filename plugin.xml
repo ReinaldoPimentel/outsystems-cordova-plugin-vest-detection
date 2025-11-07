@@ -55,7 +55,7 @@
         
         <podspec>
             <pods use-frameworks="true">
-                <pod name="TensorFlowLite" spec="2.17.0" />
+                <pod name="TensorFlowLite" spec="2.15.0" />
             </pods>
         </podspec>
     </platform>
