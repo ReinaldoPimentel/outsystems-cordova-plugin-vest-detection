@@ -54,6 +54,9 @@
         <resource-file src="src/models/labels.txt" />
         
         <podspec>
+            <config>
+                <source url="https://cdn.cocoapods.org/"></source>
+            </config>
             <pods use-frameworks="true">
                 <pod name="TensorFlowLite" spec="2.15.0" />
             </pods>
