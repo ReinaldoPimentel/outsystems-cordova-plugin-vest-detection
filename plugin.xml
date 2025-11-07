@@ -55,7 +55,6 @@
         
         <podspec>
             <config>
-                <source url="https://github;"></source>
                 <source url="https://cdn.cocoapods.org/"></source>
             </config>
             <pods use-frameworks="true">
