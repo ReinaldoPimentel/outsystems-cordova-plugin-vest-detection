@@ -58,7 +58,7 @@
                 <source url="https://cdn.cocoapods.org/"></source>
             </config>
             <pods use-frameworks="true">
-                <pod name="TensorFlowLite" spec="2.15.0" />
+                <pod name="TensorFlowLite" spec="1.13.1" />
             </pods>
         </podspec>
     </platform>
